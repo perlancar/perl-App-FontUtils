@@ -1,4 +1,4 @@
-package App::PDFUtils;
+package App::FontUtils;
 
 use 5.010001;
 use strict;
@@ -69,7 +69,7 @@ is equivalent to:
 _
     args => {
         %argspec0_ttf_file,
-        %argspec1_otf_file,
+        %argspec1opt_otf_file,
         %argspecopt_overwrite,
     },
     deps => {
@@ -96,7 +96,55 @@ sub ttf2otf {
 
     IPC::System::Options::system(
         {log=>1, die=>1},
-        "fontforge", "-lang=ff", "-c", "Open($1); Generate($2); Close();", $ttf_file, $otf_file,
+        "fontforge", "-lang=ff", "-c", 'Open($1); Generate($2); Close();', $ttf_file, $otf_file,
+    );
+    [200];
+}
+
+$SPEC{otf2ttf} = {
+    v => 1.1,
+    summary => 'Convert OTF to TTF',
+    description => <<'_',
+
+This program is a shortcut wrapper for <prog:fontforge>. This command:
+
+    % otf2ttf foo.otf
+
+is equivalent to:
+
+    % fontforge -lang=ff -c 'Open($1); Generate($2); Close();' foo.otf foo.ttf
+
+_
+    args => {
+        %argspec0_otf_file,
+        %argspec1opt_ttf_file,
+        %argspecopt_overwrite,
+    },
+    deps => {
+        prog => 'fontforge',
+    },
+    links => [
+        {url => 'prog:ttf2otf'},
+    ],
+};
+sub otf2ttf {
+    require IPC::System::Options;
+
+    my %args = @_;
+
+    my $otf_file = $args{otf_file};
+    -f $otf_file or return [500, "File '$otf_file' does not exist or not a file"];
+
+    my $ttf_file = $args{ttf_file};
+    unless (defined $ttf_file) {
+        ($ttf_file = $otf_file) =~ s/\.otf\z/.ttf/i;
+    }
+    $ttf_file eq $otf_file and return [412, "Please specify a different name for the output TTF file"];
+    ((-f $ttf_file) && !$args{overwrite}) and return [412, "TTF file '$ttf_file' already exists, please specify another output name or use --overwrite"];
+
+    IPC::System::Options::system(
+        {log=>1, die=>1},
+        "fontforge", "-lang=ff", "-c", 'Open($1); Generate($2); Close();', $otf_file, $ttf_file,
     );
     [200];
 }
