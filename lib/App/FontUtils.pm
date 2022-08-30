@@ -150,7 +150,7 @@ sub otf2ttf {
 }
 
 1;
-# ABSTRACT: Command-line utilities related fonts and font files
+# ABSTRACT: Command-line utilities related to fonts and font files
 
 =head1 SYNOPSIS
 
